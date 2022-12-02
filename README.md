@@ -71,8 +71,11 @@ python main.py configs/clrnet/clr_resnet101_tusimple_cctv.py --test --load_from 
 | CLRNet-Resnet101 / [CLRNet-Resnet101*][trained-weights] | 80.13 / 79.92 | 97.62 / 97.71 |
 
 
-'F1@50' refers to the official metric, 
+'F1@50' refers to the official metric,
 i.e., F1 score when IoU threshold is 0.5 between the gt and prediction. 'F1@75' is the F1 score when IoU threshold is 0.75.
+
+### CCTV-Camera Visualization 
+![CCTV-Camera Visualization](.github/vis_img/cctv_dataset_vis.JPG)
 
 '*' method is the reproduced results.
 ## Acknowledgement
