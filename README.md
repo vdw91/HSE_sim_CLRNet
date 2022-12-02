@@ -18,18 +18,49 @@ Refer to README_CLRNEt.md
 ## Getting Started
 
 ### Training and Evaluate CLRNet using Tusimple and CULane
-Refer to README_CLRNEt.md
-
-### Prepare CCTV-Camera Dataset
-
 
 ```Shell
 python main.py [configs/path_to_your_config] --gpus [gpu_num]
 ```
+For example, run
+```Shell
+python main.py configs/clrnet/clr_resnet18_culane.py --gpus 0
+```
+
+For testing, run
+```Shell
+python main.py [configs/path_to_your_config] --[test|validate] --load_from [path_to_your_model] --gpus [gpu_num]
+```
+
+For example, run
+```Shell
+python main.py configs/clrnet/clr_dla34_culane.py --validate --load_from culane_dla34.pth --gpus 0
+```
+
+### Prepare CCTV-Camera Dataset
+
+Contact administrator for dataset.
+
+For CCTV-Camera, the folder structure is like this:
+
+```
+$CCTV-CameraROOT/Suwon    # data folders
+$CCTV-CameraROOT/list      # data lists
+```
+
+### Run inference for CCTV-Camera Dataset
+
+Download the "clr_resnet101_tusimple.pth" weight from [trained-weights]
+
+```Shell
+python main.py configs/clrnet/clr_resnet101_tusimple_cctv.py --test --load_from clr_resnet101_tusimple.pth --gpus 0 --view
+```
+
 
 ## Results
 
 [trained-weights]: https://drive.google.com/drive/folders/1N3EUMyaFJnCrAWhJkmEpeWx39gCa3Mo_?usp=share_link
+
 
 ### Reproduce results using F1 score metric. 
 
