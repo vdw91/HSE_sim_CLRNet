@@ -44,16 +44,18 @@ Contact administrator for dataset.
 For CCTV-Camera, the folder structure is like this:
 
 ```
-$CCTV-CameraROOT/Suwon    # data folders
-$CCTV-CameraROOT/list      # data lists
+$CCTV-CameraROOT/Suwon_Initial      # data folders
+$CCTV-CameraROOT/Suwon              # data folders
+$CCTV-CameraROOT/list               # data lists
 ```
 
 ### Run inference for CCTV-Camera Dataset
 
-Download the "clr_resnet101_tusimple.pth" weight from [trained-weights]
+Download the "r101_tusimple_ckpt69.pth" weight from [trained-weights]
 
+Then run: 
 ```Shell
-python main.py configs/clrnet/clr_resnet101_tusimple_cctv.py --test --load_from clr_resnet101_tusimple.pth --gpus 0 --view
+python cctv_infer.py configs/clrnet/clr_resnet101_tusimple_cctv.py --test --load_from r101_tusimple_ckpt69.pth --gpus 0 --view
 ```
 
 
@@ -75,7 +77,7 @@ python main.py configs/clrnet/clr_resnet101_tusimple_cctv.py --test --load_from 
 i.e., F1 score when IoU threshold is 0.5 between the gt and prediction. 'F1@75' is the F1 score when IoU threshold is 0.75.
 
 ### CCTV-Camera Visualization 
-![CCTV-Camera Visualization](.github/vis_img/cctv_dataset_vis.JPG)
+![CCTV-Camera Visualization](.github/vis_img/cctv_dataset_vis.png)
 
 
 ## Acknowledgement
