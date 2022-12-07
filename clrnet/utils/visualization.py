@@ -1,7 +1,7 @@
 import cv2
 import os
 import os.path as osp
-
+import numpy as np
 
 COLORS = [
     (255, 0, 0),
