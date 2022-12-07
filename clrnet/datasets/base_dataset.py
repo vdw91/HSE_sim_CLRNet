@@ -8,7 +8,7 @@ import torchvision
 import logging
 from .registry import DATASETS
 from .process import Process
-from clrnet.utils.visualization import imshow_lanes
+from clrnet.utils.visualization import imshow_lanes, imshow_lanes_cctv
 from mmcv.parallel import DataContainer as DC
 
 
@@ -30,6 +30,16 @@ class BaseDataset(Dataset):
                                 img_name.replace('/', '_'))
             lanes = [lane.to_array(self.cfg) for lane in lanes]
             imshow_lanes(img, lanes, out_file=out_file)
+            
+    def view_cctv(self, predictions, img_metas, transformMat):
+        img_metas = [item for img_meta in img_metas.data for item in img_meta]
+        for lanes, img_meta in zip(predictions, img_metas):
+            img_name = img_meta['img_name']
+            img = cv2.imread(osp.join(self.data_root, img_name))
+            out_file = osp.join(self.cfg.work_dir, 'visualization',
+                                img_name.replace('/', '_'))
+            lanes = [lane.to_array(self.cfg) for lane in lanes]
+            imshow_lanes_cctv(img, lanes, transformMat, out_file=out_file)
 
     def __len__(self):
         return len(self.data_infos)
