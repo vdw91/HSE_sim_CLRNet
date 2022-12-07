@@ -77,7 +77,7 @@ python cctv_infer.py configs/clrnet/clr_resnet101_tusimple_cctv.py --test --load
 i.e., F1 score when IoU threshold is 0.5 between the gt and prediction. 'F1@75' is the F1 score when IoU threshold is 0.75.
 
 ### CCTV-Camera Visualization 
-![CCTV-Camera Visualization](.github/vis_img/cctv_dataset_vis.png)
+![CCTV-Camera Visualization](.github/vis_img/cctv_dataset_vis_new.png)
 
 
 ## Acknowledgement
