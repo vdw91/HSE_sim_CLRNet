@@ -176,7 +176,25 @@ class Runner(object):
         metric = self.val_loader.dataset.evaluate(predictions,
                                                   self.cfg.work_dir)
         self.recorder.logger.info('metric: ' + str(metric))
+    
+    def test_cctv(self):
+        transformMat = self.prepare_cctv_dataset()
 
+        if not self.test_loader:
+            self.test_loader = build_dataloader(self.cfg.dataset.test,
+                                                self.cfg,
+                                                is_train=False)
+        self.net.eval()
+        predictions = []
+        for i, data in enumerate(tqdm(self.test_loader, desc=f'Testing')):
+            data = self.to_cuda(data)
+            with torch.no_grad():
+                output = self.net(data)
+                output = self.net.module.heads.get_lanes(output)
+                predictions.extend(output)
+            if self.cfg.view:
+                self.test_loader.dataset.view_cctv(output, data['meta'], transformMat)
+    
     def save_ckpt(self, is_best=False):
         save_model(self.net, self.optimizer, self.scheduler, self.recorder,
                    is_best)
