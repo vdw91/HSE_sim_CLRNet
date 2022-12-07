@@ -34,7 +34,41 @@ class Runner(object):
         self.metric = 0.
         self.val_loader = None
         self.test_loader = None
+        
+    def prepare_cctv_dataset(self):
+        from glob import glob
+        def getImgList(dataset_root_path, subset, verbose=False):
+            imgList = glob(dataset_root_path + subset + '/*.png') \
+                            + glob(dataset_root_path + subset + '/*.bmp') \
+                            + glob(dataset_root_path + subset + '/*.jpg')
+    
+            return imgList
 
+        data_root_path = self.cfg.dataset_path
+        subset = '/Suwon_Initial'
+        imgList = getImgList(data_root_path, subset)
+
+        pts1 = np.float32([  [200, 640], [360, 1600], [680, 1600],  [960, 640]  ])
+        pts2 = np.float32([  [0, 0],     [0, 719],  [1279, 719],   [1279, 0]  ])
+        transformMat = cv2.getPerspectiveTransform(pts1, pts2)
+
+        for img_path in imgList:
+            img = cv2.imread(img_path)
+
+            warpImg = cv2.warpPerspective(img, transformMat, (1640, 590))
+
+            warpImg_save_path = img_path.replace('Suwon_Initial', 'Suwon')
+            empty_label_file_path = warpImg_save_path.replace('.png', '.txt')
+            cv2.imwrite(warpImg_save_path, cv2.resize(warpImg, (1280, 720)))
+
+            with open(empty_label_file_path, 'w') as fp:
+                pass
+
+        print("data_root_path: ",data_root_path)
+        print("imgList_shape: ",imgList)
+        
+        return transformMat
+    
     def to_cuda(self, batch):
         for k in batch:
             if not isinstance(batch[k], torch.Tensor):
