@@ -59,7 +59,7 @@ def parse_args():
         action='store_true',
         help='whether to test the checkpoint on testing set')
     parser.add_argument('--gpus', nargs='+', type=int, default='0')
-    parser.add_argument('--seed', type=int, default=0, help='random seed')
+    # parser.add_argument('--seed', type=int, default=0, help='random seed')
     args = parser.parse_args()
 
     return args
