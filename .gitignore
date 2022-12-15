@@ -25,3 +25,9 @@ build
 #*.jpg
 
 /.idea
+
+# Some extensions
+*.avi
+*.mp3
+*.mp4
+*.zip
