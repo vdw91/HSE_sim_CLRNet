@@ -84,6 +84,7 @@ def imshow_lanes(img, lanes, show=False, out_file=None, width=4):
         cv2.imshow('view', img)
         cv2.waitKey(0)
     
+    # Reverse the transformMat used in preprocessing step
     transformMat_inv = np.linalg.inv(transformMat)
 
     if out_file:
