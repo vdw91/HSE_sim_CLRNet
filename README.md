@@ -5,7 +5,9 @@
 
 ### Automation Lab, Sungkyunkwan University
   
-# Lane Detection for CCTV-cameras using CLRNet: Cross Layer Refinement Network 
+# Lane Detection for CCTV-cameras using CLRNet: Cross-Layer Refinement Network 
+
+Prepare for an updated version of CLRNet: CLRerNet 
 
 </div>
 
