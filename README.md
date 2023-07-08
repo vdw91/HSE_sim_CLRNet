@@ -10,9 +10,9 @@
 Prepare for an updated version, include:
 
 - Background subtraction module
-  (.github/vis_img/background_subtraction_module.png)
+[https://github.com/SKKU-AutoLab-VSW/ETSS-03-LaneDet/blob/7e32baf050af296a14b20120c4b05c8866972ef2/.github/vis_img/background_subtraction_module.PNG](https://github.com/SKKU-AutoLab-VSW/ETSS-03-LaneDet/blob/7e32baf050af296a14b20120c4b05c8866972ef2/.github/vis_img/background_subtraction_module.PNG)
 - Segment Anything module -> Generate Lane segments
-  (.github/vis_img/segment_anything_module.png)
+[  (.github/vis_img/segment_anything_module.png)](https://github.com/SKKU-AutoLab-VSW/ETSS-03-LaneDet/blob/7e32baf050af296a14b20120c4b05c8866972ef2/.github/vis_img/segment_anything_module.png)
 - Yolov8 model -> detect instance segmentation for cars
 
 </div>
