@@ -7,7 +7,13 @@
   
 # Lane Detection for CCTV-cameras using CLRNet: Cross-Layer Refinement Network 
 
-Prepare for an updated version of CLRNet: CLRerNet 
+Prepare for an updated version, include:
+
+- Background subtraction module
+  (.github/vis_img/background_subtraction_module.png)
+- Segment Anything module -> Generate Lane segments
+  (.github/vis_img/segment_anything_module.png)
+- Yolov8 model -> detect instance segmentation for cars
 
 </div>
 
