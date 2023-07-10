@@ -1,0 +1,7 @@
+1/ Install segment-anything api from 
+https://github.com/facebookresearch/segment-anything#model-checkpoints
+
+2/ Install yolov8 apt from:
+https://docs.ultralytics.com/quickstart/ (Use git clone method)
+
+3/ Test the workflow from yolov8 -> generate instace segmentation for cars
