@@ -7,7 +7,9 @@ import random
 
 # initialize yolo model
 from ultralytics import YOLO
-model = YOLO('yolov8l.pt')  # load an official model
+yolov8_detection_model = YOLO('yolov8l.pt')  # load an official model
+from ultralytics import SAM
+yolov8_SAM_model = SAM('sam_l.pt')
 
 
 # Video information
@@ -21,6 +23,7 @@ frame_rate = 30
 
 # initialising background and foreground
 BACKGROUND = np.zeros([row,col],np.uint8)
+BACKGROUND_COLORED = np.zeros([row,col, 3],np.uint8)
 FOREGROUND = np.zeros([row,col],np.uint8)
 a = np.uint8([255])
 b = np.uint8([0])
@@ -29,7 +32,7 @@ noise_remove_kernel = np.ones([3,3],np.uint8)
 
 def first_stage_bg_subtraction(frame):
 
-    global BACKGROUND, FOREGROUND, a, b , noise_remove_kernel
+    global BACKGROUND, BACKGROUND_COLORED, FOREGROUND, a, b , noise_remove_kernel
 
     # Convert frame to gray (1 channel)
     gray_frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
@@ -48,8 +51,9 @@ def first_stage_bg_subtraction(frame):
     FOREGROUND = cv2.dilate(FOREGROUND,noise_remove_kernel)
     # using bitwise and to get colored foreground
     FOREGROUND = cv2.bitwise_and(frame, frame, mask=FOREGROUND)
+    BACKGROUND_COLORED = cv2.cvtColor(BACKGROUND,cv2.COLOR_GRAY2BGR)
 
-    return BACKGROUND, FOREGROUND
+    #return BACKGROUND, FOREGROUND, BACKGROUND_COLORED
 
 
 
@@ -80,16 +84,20 @@ def main():
 
             first_stage_bg_subtraction(frame)
 
-            yolo_seg_results = model(frame)  # predict on an image
+            yolo_seg_results = yolov8_detection_model(frame)  # predict on an image
             yolo_seg_results_plotted = yolo_seg_results[0].plot()
 
+            if(frame_count > 300):
+                yolov8_SAM_model(BACKGROUND_COLORED)
+                break
+
             # Process Yolo results list
-            for result in yolo_seg_results:
-                boxes = result.boxes  # Boxes object for bbox outputs
-                masks = result.masks  # Masks object for segmentation masks outputs
-                keypoints = result.keypoints  # Keypoints object for pose outputs
-                probs = result.probs  # Class probabilities for classification outputs
-                print(masks)
+            # for result in yolo_seg_results:
+            #     boxes = result.boxes  # Boxes object for bbox outputs
+            #     masks = result.masks  # Masks object for segmentation masks outputs
+            #     keypoints = result.keypoints  # Keypoints object for pose outputs
+            #     probs = result.probs  # Class probabilities for classification outputs
+            #     print(masks)
             
             
             cv2.imshow('background',BACKGROUND)
