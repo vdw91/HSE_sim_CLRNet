@@ -15,6 +15,9 @@ Prepare for an updated version, include:
 ![/Segment_Anything_Example](.github/vis_img/segment_anything_module.png)
 - Yolov8 model -> detect instance segmentation for cars
 
+- Overall Process
+  ![/Overall_Process_Example](.github/vis_img/CamID_59_20230713_102533_05.PNG)
+
 </div>
 
 ## Introduction
