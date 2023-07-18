@@ -22,7 +22,7 @@ Prepare for an updated version, include:
 
 ## Introduction
 
-- Lane Detection method for CCTV-cameras based on CLRNet: Cross Layer Refinement Network
+- Lane Detection method for CCTV-cameras using Yolov8 + SegmentAnything + ByteTrack
 
 ## Installation
 
