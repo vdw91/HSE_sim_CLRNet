@@ -14,7 +14,8 @@ yolov8_detection_model = YOLO('yolov8l.pt')  # load an official model
 
 
 # Video information
-video_path = 'CamID_59_20230713_102533_05.mkv'
+# video_path = 'CamID_59_20230713_102533_05.mkv'
+video_path = 'CamID_62_Normal_20230717_144642_19.mkv'
 # video_path = 'downtown-rain-0003.mov'
 # video_path = 'highway-night-0005.mov'
 # row, col, channel = 1080, 1920, 3
@@ -140,6 +141,8 @@ def improved_bg_subtraction_using_Yolov8_Detection(frame, yolov8_results, frame_
                 yolov8_vehicle_mask[y_tl : y_br, x_tl : x_br] = 1
 
 
+        # yolov8_vehicle_mask = np.where(BACKGROUND > 120, 1, yolov8_vehicle_mask)
+
         return yolov8_vehicle_mask
 
     # Apply yolov8_vehicle_mask for every 30 frames (which is the current framerate)
@@ -153,13 +156,15 @@ def improved_bg_subtraction_using_Yolov8_Detection(frame, yolov8_results, frame_
     gray_frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
 
     # Apply algorithm of median approximation method to get estimated background
+    background_clone = BACKGROUND.copy()
     BACKGROUND = np.where(gray_frame>BACKGROUND,BACKGROUND+1,BACKGROUND-1)
+    BACKGROUND = np.where(yolov8_vehicle_mask==1, background_clone, BACKGROUND)
 
     # Use cv2.absdiff instead of background - frame, because 1 - 2 will give 255 which is not expected
     FOREGROUND = cv2.absdiff(BACKGROUND,gray_frame)
 
     # setting a threshold value for removing noise and getting foreground
-    FOREGROUND = np.where(FOREGROUND>40,a,b)
+    FOREGROUND = np.where( FOREGROUND>40,a,b)
             
     # removing noise
     FOREGROUND = cv2.erode(FOREGROUND,noise_remove_kernel)
@@ -169,7 +174,6 @@ def improved_bg_subtraction_using_Yolov8_Detection(frame, yolov8_results, frame_
 
     BACKGROUND_COLORED = cv2.cvtColor(BACKGROUND,cv2.COLOR_GRAY2BGR)
 
-    return yolov8_vehicle_mask
 
 
 def main():
@@ -208,6 +212,7 @@ def main():
             vis_res = cv2.resize(vis_res, [int(vis_res.shape[1] / 3), int(vis_res.shape[0] / 2)])
 
             cv2.imshow('vis', vis_res)
+            cv2.imwrite('results/vis_' + str(frame_count).zfill(6) + '.png', vis_res)
             # cv2.imshow('background',BACKGROUND_COLORED)
             # cv2.imshow('foreground',FOREGROUND)
             # cv2.imshow('yolo_seg_results_plotted',yolo_seg_results_plotted)
