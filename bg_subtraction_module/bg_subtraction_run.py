@@ -30,9 +30,9 @@ sam = sam_model_registry["default"](checkpoint="sam_vit_h_4b8939.pth")
 sam.to(device=device)
 mask_generator = SamAutomaticMaskGenerator(
     model=sam,
-    points_per_side=128,
-    pred_iou_thresh=0.5,
-    stability_score_thresh=0.9,
+    points_per_side=16,
+    pred_iou_thresh=0.7,
+    stability_score_thresh=0.5,
     crop_n_layers=1,
     crop_n_points_downscale_factor=2,
     min_mask_region_area=300,  # Requires open-cv to run post-processing
@@ -49,7 +49,8 @@ a = np.uint8([255])
 b = np.uint8([0])
 noise_remove_kernel = np.ones([3,3],np.uint8)
 
-def fit_all_to_a_FULLHD(background, foreground, frame, detection, segment_res):
+
+def fit_all_to_a_FULLHD(background, foreground, frame, detection, segment_res, lane_detection):
     global row, col, channel, padding
     vis_res = np.zeros((row * 2 + padding, col * 3 + padding * 2, channel))
 
@@ -61,8 +62,10 @@ def fit_all_to_a_FULLHD(background, foreground, frame, detection, segment_res):
     # Second row - detection - segment_res - ***
     vis_res[row + padding : , 0:col, : ] = detection
     vis_res[row + padding : , col + padding : col * 2 + padding, : ] = segment_res
+    vis_res[row + padding : , col * 2 + padding * 2 : , : ] = lane_detection
 
     return vis_res.astype(np.uint8)
+
 
 def generate_mask(anns, default_frame):
 
@@ -115,6 +118,60 @@ def first_stage_bg_subtraction(frame):
     #return BACKGROUND, FOREGROUND, BACKGROUND_COLORED
 
 
+def improved_bg_subtraction_using_Yolov8_Detection(frame, yolov8_results, frame_count):
+
+    global BACKGROUND, BACKGROUND_COLORED, FOREGROUND, FOREGROUND_COLORED, a, b , noise_remove_kernel
+    print('frame_count', frame_count)
+    # Generate a mask which contain all vehicle detection from YoloV8
+    def generate_yolov8_vehicle_mask(yolov8_results):
+        yolov8_vehicle_mask = np.zeros(BACKGROUND.shape, dtype=np.uint8)
+
+        for result in yolov8_results:
+            boxes = result.boxes  # Boxes object for bbox outputs
+            # masks = result.masks  # Masks object for segmentation masks outputs
+            # keypoints = result.keypoints  # Keypoints object for pose outputs
+            # probs = result.probs  # Class probabilities for classification outputs
+            boxes_xyxy = boxes.xyxy
+            for a_box in boxes_xyxy:
+                x_tl = int(a_box[0])
+                y_tl = int(a_box[1])
+                x_br = int(a_box[2])
+                y_br = int(a_box[3])   
+                yolov8_vehicle_mask[y_tl : y_br, x_tl : x_br] = 1
+
+
+        return yolov8_vehicle_mask
+
+    # Apply yolov8_vehicle_mask for every 30 frames (which is the current framerate)
+    # The period can vary based on the framerate
+    yolov8_vehicle_mask = np.zeros(BACKGROUND.shape, dtype=np.uint8)
+    if(frame_count % frame_rate == 0 or True):
+        yolov8_vehicle_mask = generate_yolov8_vehicle_mask(yolov8_results)
+
+
+    # Convert frame to gray (1 channel)
+    gray_frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+
+    # Apply algorithm of median approximation method to get estimated background
+    BACKGROUND = np.where(gray_frame>BACKGROUND,BACKGROUND+1,BACKGROUND-1)
+
+    # Use cv2.absdiff instead of background - frame, because 1 - 2 will give 255 which is not expected
+    FOREGROUND = cv2.absdiff(BACKGROUND,gray_frame)
+
+    # setting a threshold value for removing noise and getting foreground
+    FOREGROUND = np.where(FOREGROUND>40,a,b)
+            
+    # removing noise
+    FOREGROUND = cv2.erode(FOREGROUND,noise_remove_kernel)
+    FOREGROUND = cv2.dilate(FOREGROUND,noise_remove_kernel)
+    # using bitwise and to get colored foreground
+    FOREGROUND = cv2.bitwise_and(frame, frame, mask=FOREGROUND)
+
+    BACKGROUND_COLORED = cv2.cvtColor(BACKGROUND,cv2.COLOR_GRAY2BGR)
+
+    return yolov8_vehicle_mask
+
+
 def main():
     cap = cv2.VideoCapture(video_path)
     _, frame = cap.read()
@@ -138,31 +195,16 @@ def main():
 
             vis_frame = frame.copy()
 
-            first_stage_bg_subtraction(frame)
             
             yolo_seg_results = yolov8_detection_model(frame)  # predict on an image
             yolo_detection_plotted = yolo_seg_results[0].plot()
 
-            if(frame_count > 0 and frame_count % 300 == 0):
-                global SEGMENT_VIS
-                masks = mask_generator.generate(BACKGROUND_COLORED)
-                SEGMENT_VIS = generate_mask(masks, BACKGROUND_COLORED)
-                # cv2.imwrite('segment_result_' + str(frame_count).zfill(6) + '.png', segment_result)
-
-                # plt.axis('off')
-                # plt.show() 
-                #break
-
-            # Process Yolo results list
-            # for result in yolo_seg_results:
-            #     boxes = result.boxes  # Boxes object for bbox outputs
-            #     masks = result.masks  # Masks object for segmentation masks outputs
-            #     keypoints = result.keypoints  # Keypoints object for pose outputs
-            #     probs = result.probs  # Class probabilities for classification outputs
-            #     print(masks)
+            # first_stage_bg_subtraction(frame)
+            improved_bg_subtraction_using_Yolov8_Detection(frame, yolo_seg_results, frame_count)
             
             
-            vis_res = fit_all_to_a_FULLHD(BACKGROUND_COLORED, FOREGROUND, frame, yolo_detection_plotted, SEGMENT_VIS)
+            vis_res = fit_all_to_a_FULLHD(BACKGROUND_COLORED, FOREGROUND, frame, 
+                                          yolo_detection_plotted, SEGMENT_VIS, SEGMENT_VIS)
             vis_res = cv2.resize(vis_res, [int(vis_res.shape[1] / 3), int(vis_res.shape[0] / 2)])
 
             cv2.imshow('vis', vis_res)
@@ -173,7 +215,7 @@ def main():
             # Press Q on keyboard to  exit
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 # cv2.imwrite('frame_' + str(frame_count).zfill(6) + '.png', frame)
-                # cv2.imwrite('background.png', BACKGROUND)
+                cv2.imwrite('vis.png', vis_res)
                 break
 
             frame_count += 1
