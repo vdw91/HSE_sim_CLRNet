@@ -13,13 +13,24 @@ yolov8_detection_model = YOLO('yolov8l.pt')  # load an official model
 # yolov8_SAM_model = SAM('sam_l.pt')
 
 
+# Include tracker
+from boxmot import DeepOCSORT
+from pathlib import Path
+tracker = DeepOCSORT(
+  model_weights=Path('osnet_x0_25_msmt17.pt'),  # which ReID model to use
+  device='cuda:0',  # 'cpu', 'cuda:0', 'cuda:1', ... 'cuda:N'
+  fp16=True,  # wether to run the ReID model with half precision or not
+)
+
 # Video information
 # video_path = 'CamID_59_20230713_102533_05.mkv'
-video_path = 'CamID_62_Normal_20230717_144642_19.mkv'
-# video_path = 'downtown-rain-0003.mov'
+# video_path = 'CamID_62_Normal_20230717_144642_19.mkv'
+# row, col, channel = 720, 1280, 3
+
 # video_path = 'highway-night-0005.mov'
-# row, col, channel = 1080, 1920, 3
-row, col, channel = 720, 1280, 3
+video_path = 'downtown-rain-0003.mov'
+row, col, channel = 1080, 1920, 3
+
 padding = 100
 frame_rate = 30
 
@@ -66,6 +77,17 @@ def fit_all_to_a_FULLHD(background, foreground, frame, detection, segment_res, l
     vis_res[row + padding : , col * 2 + padding * 2 : , : ] = lane_detection
 
     return vis_res.astype(np.uint8)
+
+
+def draw_tracking_results(im, tracking_results):
+
+    draw_im = im.copy()
+    for a_res in tracking_results:
+        ori_x = int( (a_res[0] + a_res[2]) / 2 )
+        ori_y = int( (a_res[1] + a_res[3]) / 2 )
+        cv2.putText(draw_im, str(a_res[4]), (ori_x, ori_y), cv2.FONT_HERSHEY_SIMPLEX, 1, (125,0,125), 3,  cv2.LINE_AA)
+
+    return draw_im
 
 
 def generate_mask(anns, default_frame):
@@ -123,6 +145,8 @@ def improved_bg_subtraction_using_Yolov8_Detection(frame, yolov8_results, frame_
 
     global BACKGROUND, BACKGROUND_COLORED, FOREGROUND, FOREGROUND_COLORED, a, b , noise_remove_kernel
     print('frame_count', frame_count)
+
+
     # Generate a mask which contain all vehicle detection from YoloV8
     def generate_yolov8_vehicle_mask(yolov8_results):
         yolov8_vehicle_mask = np.zeros(BACKGROUND.shape, dtype=np.uint8)
@@ -140,16 +164,25 @@ def improved_bg_subtraction_using_Yolov8_Detection(frame, yolov8_results, frame_
                 y_br = int(a_box[3])   
                 yolov8_vehicle_mask[y_tl : y_br, x_tl : x_br] = 1
 
-
         # yolov8_vehicle_mask = np.where(BACKGROUND > 120, 1, yolov8_vehicle_mask)
 
         return yolov8_vehicle_mask
+    
+
+    def tracking_for_yolov8_detection(yolov8_results, im):
+        # yolov8_results_cpu = yolov8_results.cpu()
+        yolov8_ret_data = yolov8_results[0].cpu().boxes.data.numpy()
+        tracker_outputs = tracker.update(yolov8_ret_data, im)
+        return tracker_outputs
+
 
     # Apply yolov8_vehicle_mask for every 30 frames (which is the current framerate)
     # The period can vary based on the framerate
-    yolov8_vehicle_mask = np.zeros(BACKGROUND.shape, dtype=np.uint8)
-    if(frame_count % frame_rate == 0 or True):
-        yolov8_vehicle_mask = generate_yolov8_vehicle_mask(yolov8_results)
+    # yolov8_vehicle_mask = np.zeros(BACKGROUND.shape, dtype=np.uint8)
+    # if(frame_count % frame_rate == 0 or True):
+    yolov8_vehicle_mask = generate_yolov8_vehicle_mask(yolov8_results)
+    tracking_outputs = tracking_for_yolov8_detection(yolov8_results, frame)
+    tracking_plotted_img = draw_tracking_results(frame, tracking_outputs)
 
 
     # Convert frame to gray (1 channel)
@@ -174,7 +207,7 @@ def improved_bg_subtraction_using_Yolov8_Detection(frame, yolov8_results, frame_
 
     BACKGROUND_COLORED = cv2.cvtColor(BACKGROUND,cv2.COLOR_GRAY2BGR)
 
-
+    return tracking_outputs, tracking_plotted_img
 
 def main():
     cap = cv2.VideoCapture(video_path)
@@ -200,15 +233,16 @@ def main():
             vis_frame = frame.copy()
 
             
-            yolo_seg_results = yolov8_detection_model(frame)  # predict on an image
-            yolo_detection_plotted = yolo_seg_results[0].plot()
+            yolo_detection_results = yolov8_detection_model(frame)  # predict on an image
+            # yolo_detection_plotted = yolo_seg_results[0].plot()
 
             # first_stage_bg_subtraction(frame)
-            improved_bg_subtraction_using_Yolov8_Detection(frame, yolo_seg_results, frame_count)
+            tracking_results, tracking_plotted_img = improved_bg_subtraction_using_Yolov8_Detection(
+                frame, yolo_detection_results, frame_count)
             
             
             vis_res = fit_all_to_a_FULLHD(BACKGROUND_COLORED, FOREGROUND, frame, 
-                                          yolo_detection_plotted, SEGMENT_VIS, SEGMENT_VIS)
+                                          tracking_plotted_img, SEGMENT_VIS, SEGMENT_VIS)
             vis_res = cv2.resize(vis_res, [int(vis_res.shape[1] / 3), int(vis_res.shape[0] / 2)])
 
             cv2.imshow('vis', vis_res)
@@ -220,7 +254,8 @@ def main():
             # Press Q on keyboard to  exit
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 # cv2.imwrite('frame_' + str(frame_count).zfill(6) + '.png', frame)
-                cv2.imwrite('vis.png', vis_res)
+                # cv2.imwrite('vis.png', vis_res)
+                
                 break
 
             frame_count += 1
