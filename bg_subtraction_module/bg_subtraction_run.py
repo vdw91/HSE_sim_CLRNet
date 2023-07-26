@@ -24,12 +24,12 @@ tracker = DeepOCSORT(
 
 # Video information
 # video_path = 'CamID_59_20230713_102533_05.mkv'
-# video_path = 'CamID_62_Normal_20230717_144642_19.mkv'
-# row, col, channel = 720, 1280, 3
+video_path = 'CamID_46_Normal_20230717_110508.mkv'
+row, col, channel = 720, 1280, 3
 
 # video_path = 'highway-night-0005.mov'
-video_path = 'downtown-rain-0003.mov'
-row, col, channel = 1080, 1920, 3
+# video_path = 'downtown-rain-0003.mov'
+# row, col, channel = 1080, 1920, 3
 
 padding = 100
 frame_rate = 30
@@ -60,6 +60,21 @@ FOREGROUND_COLORED = np.zeros([row,col, 3],np.uint8)
 a = np.uint8([255])
 b = np.uint8([0])
 noise_remove_kernel = np.ones([3,3],np.uint8)
+
+
+# Lane Detection configs and initialization
+LANE_REGION_MASKS = np.zeros([row,col],np.uint8)
+LANE_REGION_MASKS_RGB = np.zeros([row,col],np.uint8)
+
+def update_lane_reg_mask():
+    global LANE_REGION_MASKS, LANE_REGION_MASKS_RGB, FOREGROUND
+    
+    print(FOREGROUND.shape)
+    # foreground_single_channel = cv2.cvtColor(FOREGROUND, cv2.COLOR_BGR2GRAY)
+
+    LANE_REGION_MASKS = np.where(FOREGROUND == 255,LANE_REGION_MASKS+1,LANE_REGION_MASKS)
+    LANE_REGION_MASKS_RGB = np.where(LANE_REGION_MASKS > 30 , 255, 0)
+    print(LANE_REGION_MASKS_RGB.shape)
 
 
 def fit_all_to_a_FULLHD(background, foreground, frame, detection, segment_res, lane_detection):
@@ -157,12 +172,15 @@ def improved_bg_subtraction_using_Yolov8_Detection(frame, yolov8_results, frame_
             # keypoints = result.keypoints  # Keypoints object for pose outputs
             # probs = result.probs  # Class probabilities for classification outputs
             boxes_xyxy = boxes.xyxy
-            for a_box in boxes_xyxy:
-                x_tl = int(a_box[0])
-                y_tl = int(a_box[1])
-                x_br = int(a_box[2])
-                y_br = int(a_box[3])   
-                yolov8_vehicle_mask[y_tl : y_br, x_tl : x_br] = 1
+            boxes_cls = boxes.cls
+            for a_box, a_cls in zip(boxes_xyxy, boxes_cls):
+                #print(a_box, a_cls)
+                if(a_cls == 2 or a_cls == 5 or a_cls == 7):
+                    x_tl = int(a_box[0]) 
+                    y_tl = int(a_box[1]) 
+                    x_br = int(a_box[2]) 
+                    y_br = int(a_box[3] * 1.05) 
+                    yolov8_vehicle_mask[y_tl : y_br, x_tl : x_br] = 1
 
         # yolov8_vehicle_mask = np.where(BACKGROUND > 120, 1, yolov8_vehicle_mask)
 
@@ -172,6 +190,7 @@ def improved_bg_subtraction_using_Yolov8_Detection(frame, yolov8_results, frame_
     def tracking_for_yolov8_detection(yolov8_results, im):
         # yolov8_results_cpu = yolov8_results.cpu()
         yolov8_ret_data = yolov8_results[0].cpu().boxes.data.numpy()
+        # yolov8_ret_data_vehicle_only = yolov8_ret_data[yolov8_ret_data[:, 5] < ]
         tracker_outputs = tracker.update(yolov8_ret_data, im)
         return tracker_outputs
 
@@ -197,13 +216,13 @@ def improved_bg_subtraction_using_Yolov8_Detection(frame, yolov8_results, frame_
     FOREGROUND = cv2.absdiff(BACKGROUND,gray_frame)
 
     # setting a threshold value for removing noise and getting foreground
-    FOREGROUND = np.where( FOREGROUND>40,a,b)
+    FOREGROUND = np.where(FOREGROUND>40,a,b)
             
     # removing noise
     FOREGROUND = cv2.erode(FOREGROUND,noise_remove_kernel)
     FOREGROUND = cv2.dilate(FOREGROUND,noise_remove_kernel)
     # using bitwise and to get colored foreground
-    FOREGROUND = cv2.bitwise_and(frame, frame, mask=FOREGROUND)
+    FOREGROUND_COLORED = cv2.bitwise_and(frame, frame, mask=FOREGROUND)
 
     BACKGROUND_COLORED = cv2.cvtColor(BACKGROUND,cv2.COLOR_GRAY2BGR)
 
@@ -236,21 +255,43 @@ def main():
             yolo_detection_results = yolov8_detection_model(frame)  # predict on an image
             # yolo_detection_plotted = yolo_seg_results[0].plot()
 
+            update_lane_reg_mask()
+
             # first_stage_bg_subtraction(frame)
             tracking_results, tracking_plotted_img = improved_bg_subtraction_using_Yolov8_Detection(
                 frame, yolo_detection_results, frame_count)
             
             
-            vis_res = fit_all_to_a_FULLHD(BACKGROUND_COLORED, FOREGROUND, frame, 
+            vis_res = fit_all_to_a_FULLHD(BACKGROUND_COLORED, FOREGROUND_COLORED, frame, 
                                           tracking_plotted_img, SEGMENT_VIS, SEGMENT_VIS)
             vis_res = cv2.resize(vis_res, [int(vis_res.shape[1] / 3), int(vis_res.shape[0] / 2)])
 
+
             cv2.imshow('vis', vis_res)
-            cv2.imwrite('results/vis_' + str(frame_count).zfill(6) + '.png', vis_res)
+            lane_region = cv2.cvtColor(LANE_REGION_MASKS_RGB.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+            cv2.imshow('lane_reg', lane_region)
+            # cv2.imshow('lane_reg', LANE_REGION_MASKS_RGB)
+            if(frame_count % 1000 == 0):
+                # cv2.imwrite('results/' + str(frame_count).zfill(6) + '_vis.png', vis_res)
+                masks = mask_generator.generate(BACKGROUND_COLORED)
+                segment_result = generate_mask(masks, BACKGROUND_COLORED)
+                # cv2.imwrite('results/' + str(frame_count).zfill(6) + '_seg.png', segment_result)
+                # cv2.imwrite('results/' + str(frame_count).zfill(6) + '_bg.png', BACKGROUND_COLORED)
+                
+
             # cv2.imshow('background',BACKGROUND_COLORED)
             # cv2.imshow('foreground',FOREGROUND)
             # cv2.imshow('yolo_seg_results_plotted',yolo_seg_results_plotted)
             
+            # Press S on keyboard to do segment on background image
+            if cv2.waitKey(73) & 0xFF == ord('s'):
+                masks = mask_generator.generate(BACKGROUND_COLORED)
+                segment_result = generate_mask(masks, BACKGROUND_COLORED)
+                cv2.imshow("segment", segment_result)
+                cv2.waitKey(0)
+                #break
+
+
             # Press Q on keyboard to  exit
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 # cv2.imwrite('frame_' + str(frame_count).zfill(6) + '.png', frame)
