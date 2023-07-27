@@ -65,16 +65,40 @@ noise_remove_kernel = np.ones([3,3],np.uint8)
 # Lane Detection configs and initialization
 LANE_REGION_MASKS = np.zeros([row,col],np.uint8)
 LANE_REGION_MASKS_RGB = np.zeros([row,col],np.uint8)
+lane_roi_kernel = np.ones([7,7],np.uint8)
 
-def update_lane_reg_mask():
+def update_lane_reg_mask(_frame, yolov8_results):
     global LANE_REGION_MASKS, LANE_REGION_MASKS_RGB, FOREGROUND
     
     print(FOREGROUND.shape)
     # foreground_single_channel = cv2.cvtColor(FOREGROUND, cv2.COLOR_BGR2GRAY)
 
-    LANE_REGION_MASKS = np.where(FOREGROUND == 255,LANE_REGION_MASKS+1,LANE_REGION_MASKS)
-    LANE_REGION_MASKS_RGB = np.where(LANE_REGION_MASKS > 30 , 255, 0)
-    print(LANE_REGION_MASKS_RGB.shape)
+    for result in yolov8_results:
+        boxes = result.boxes  # Boxes object for bbox outputs
+        # masks = result.masks  # Masks object for segmentation masks outputs
+        # keypoints = result.keypoints  # Keypoints object for pose outputs
+        probs = result.probs  # Class probabilities for classification outputs
+        boxes_xyxy = boxes.xyxy
+        boxes_cls = boxes.cls
+        for a_box, a_cls in zip(boxes_xyxy, boxes_cls):
+            #print(a_box, a_cls)
+            if(a_cls == 2 or a_cls == 5 or a_cls == 7):
+                x_tl = int(a_box[0] - a_box[0] * 0.05) 
+                y_tl = int(a_box[1] - a_box[1] * 0.05) 
+                x_br = int(a_box[2] * 1.05) 
+                y_br = int(a_box[3] * 1.05) 
+                
+                LANE_REGION_MASKS[y_tl : y_br, x_tl : x_br] += 1 # Need 17 times to get maximum value
+
+    # LANE_REGION_MASKS = np.where(FOREGROUND == 255,LANE_REGION_MASKS+1,LANE_REGION_MASKS)
+    LANE_REGION_MASKS_RGB = np.where(LANE_REGION_MASKS > 15, 255, LANE_REGION_MASKS_RGB)
+    LANE_REGION_MASKS_RGB_temp = LANE_REGION_MASKS_RGB.copy()
+    LANE_REGION_MASKS_RGB_temp = cv2.dilate(LANE_REGION_MASKS_RGB_temp,lane_roi_kernel)
+    # LANE_REGION_MASKS_RGB_temp = cv2.erode(LANE_REGION_MASKS_RGB_temp,noise_remove_kernel)
+    contours, hierarchy = cv2.findContours(LANE_REGION_MASKS_RGB_temp, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    return cv2.drawContours(_frame, contours, -1, (0,0,255), 3)
+    # print(LANE_REGION_MASKS_RGB.shape)
 
 
 def fit_all_to_a_FULLHD(background, foreground, frame, detection, segment_res, lane_detection):
@@ -250,12 +274,12 @@ def main():
             # cv2.imshow('Frame',frame)
 
             vis_frame = frame.copy()
-
             
             yolo_detection_results = yolov8_detection_model(frame)  # predict on an image
             # yolo_detection_plotted = yolo_seg_results[0].plot()
 
-            update_lane_reg_mask()
+            lane_roi = update_lane_reg_mask(frame.copy(), yolo_detection_results)
+            cv2.imshow('lane_roi', lane_roi)
 
             # first_stage_bg_subtraction(frame)
             tracking_results, tracking_plotted_img = improved_bg_subtraction_using_Yolov8_Detection(
@@ -268,9 +292,9 @@ def main():
 
 
             cv2.imshow('vis', vis_res)
-            lane_region = cv2.cvtColor(LANE_REGION_MASKS_RGB.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-            cv2.imshow('lane_reg', lane_region)
-            # cv2.imshow('lane_reg', LANE_REGION_MASKS_RGB)
+            
+            # lane_region = cv2.cvtColor(LANE_REGION_MASKS_RGB.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+
             if(frame_count % 1000 == 0):
                 # cv2.imwrite('results/' + str(frame_count).zfill(6) + '_vis.png', vis_res)
                 masks = mask_generator.generate(BACKGROUND_COLORED)
