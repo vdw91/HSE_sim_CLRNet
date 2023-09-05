@@ -19,6 +19,8 @@ Prepare for an updated version, include:
 
 </div>
 
+![](https://img.shields.io/github/downloads/SKKU-AutoLab-VSW/ETSS-03-LaneDet/total.svg?style=for-the-badge)
+
 ## Introduction
 
 - Lane Detection method for CCTV-cameras using Yolov8 + SegmentAnything + ByteTrack
