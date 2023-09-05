@@ -7,8 +7,6 @@
   
 # Lane Detection for CCTV-cameras using CLRNet: Cross-Layer Refinement Network 
 
-![](https://img.shields.io/github/downloads/SKKU-AutoLab-VSW/ETSS-03-LaneDet/total.svg?style=for-the-badge)
-
 Prepare for an updated version, include:
 
 - Background subtraction module
@@ -20,6 +18,8 @@ Prepare for an updated version, include:
   ![/Overall_Process_Example](.github/vis_img/CamID_59_20230713_102533_05.png)
 
 </div>
+
+![](https://img.shields.io/github/downloads/SKKU-AutoLab-VSW/ETSS-03-LaneDet/total.svg?style=for-the-badge)
 
 ## Introduction
 
