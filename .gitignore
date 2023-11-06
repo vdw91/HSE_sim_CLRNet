@@ -6,7 +6,6 @@ __pycache__/
 */*.un~
 .*.swp
 
-
 logs/
 *.egg-info/
 *.egg
