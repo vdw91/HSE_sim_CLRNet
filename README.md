@@ -28,10 +28,11 @@ Prepare for an updated version, include:
 
 ## Installation
 
-Refer to README_CLRNEt.md
+Update soon
 
 ## Getting Started
 
+<!---
 ### Training and Evaluate CLRNet using Tusimple and CULane
 
 ```Shell
@@ -51,6 +52,7 @@ For example, run
 ```Shell
 python main.py configs/clrnet/clr_dla34_culane.py --validate --load_from culane_dla34.pth --gpus 0
 ```
+--->
 
 ### Prepare CCTV-Camera Dataset
 
