@@ -52,7 +52,7 @@ For example, run
 ```Shell
 python main.py configs/clrnet/clr_dla34_culane.py --validate --load_from culane_dla34.pth --gpus 0
 ```
---->
+
 
 ### Prepare CCTV-Camera Dataset
 
@@ -74,7 +74,7 @@ Then run:
 ```Shell
 python cctv_infer.py configs/clrnet/clr_resnet101_tusimple_cctv.py --test --load_from r101_tusimple_ckpt69.pth --gpus 0 --view
 ```
-
+--->
 
 ## Results
 
