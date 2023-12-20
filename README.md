@@ -28,17 +28,17 @@ Prepare for an updated version, include:
 
 ## Installation
 
-# Create conda env
+### Create conda env
 
-# Activate env
+### Activate env
 
-# Install pytorch
+### Install pytorch
 
 ```Shell
 conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
 ```
 
-# Install mmdetection
+### Install mmdetection
 ```Shell
 pip install -U openmim
 mim install mmengine
@@ -50,17 +50,17 @@ cd mmdetection
 pip install -v -e .
 ```
 
-# Install Norfair
+### Install Norfair
 ```Shell
 pip install norfair[metrics,video]
 ```
 
-#Install SegmentAnything
+### Install SegmentAnything
 ```Shell
 pip install git+https://github.com/facebookresearch/segment-anything.git
 ```
 
-# Create folder as the following structure
+### Create folder as the following structure
 
 ## Getting Started
 
