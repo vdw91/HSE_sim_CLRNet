@@ -5,7 +5,7 @@
 
 ### Automation Lab, Sungkyunkwan University
   
-# Lane Detection for CCTV-cameras using CLRNet: Cross-Layer Refinement Network 
+# Lane Detection for CCTV-cameras using SAM and Adaptive Hough Transform
 
 Prepare for an updated version, include:
 
@@ -28,7 +28,39 @@ Prepare for an updated version, include:
 
 ## Installation
 
-Update soon
+# Create conda env
+
+# Activate env
+
+# Install pytorch
+
+```Shell
+conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+```
+
+# Install mmdetection
+```Shell
+pip install -U openmim
+mim install mmengine
+mim install "mmcv>=2.0.0"
+
+
+git clone https://github.com/open-mmlab/mmdetection.git
+cd mmdetection
+pip install -v -e .
+```
+
+# Install Norfair
+```Shell
+pip install norfair[metrics,video]
+```
+
+#Install SegmentAnything
+```Shell
+pip install git+https://github.com/facebookresearch/segment-anything.git
+```
+
+# Create folder as the following structure
 
 ## Getting Started
 
