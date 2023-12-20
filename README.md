@@ -5,7 +5,7 @@
 
 ### Automation Lab, Sungkyunkwan University
   
-# Lane Detection for CCTV-cameras using SAM and Adaptive Hough Transform
+# Lane Detection for CCTV-cameras using RTM + Norfair + SegmentAnything + Adaptive HoughR
 
 Prepare for an updated version, include:
 
