@@ -13,7 +13,7 @@ Prepare for an updated version, include:
 ![/Background_Subtraction_Example](.github/vis_img/background_subtraction_module.PNG)
 - Segment Anything module -> Generate Lane segments
 ![/Segment_Anything_Example](.github/vis_img/segment_anything_module.png)
-- Yolov8 model -> detect vehicles
+- RTM model -> detect vehicles
 - Overall Process
   ![/Overall_Process_Example](.github/vis_img/CamID_59_20230713_102533_05.png)
 
