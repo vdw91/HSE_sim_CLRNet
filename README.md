@@ -61,24 +61,30 @@ python setup.py build develop
 ```
 
 ### Data preparation
-
-#### CULane
-
-Download [CULane](https://xingangpan.github.io/projects/CULane.html). Then extract them to `$CULANEROOT`. Create link to `data` directory.
+### SimSimple
+The [SimSimple](https://github.com/vdw91/HSE_sim_CLRNet/blob/main/datasets/simsimple.7z) dataset is contained as a 7z file within the repository. Then extract them to `$SIMSIMPLEROOT`. Create link to `data` directory.
 
 ```Shell
 cd $CLRNET_ROOT
 mkdir -p data
-ln -s $CULANEROOT data/CULane
+ln -s $SIMSIMPLEROOT data/simsimple
 ```
 
-For CULane, you should have structure like this:
+For SimSimple, you should have structure like this:
 ```
-$CULANEROOT/driver_xx_xxframe    # data folders x6
-$CULANEROOT/laneseg_label_w16    # lane segmentation labels
-$CULANEROOT/list                 # data lists
+$SIMSIMPLEROOT/clips # data folders
+$SIMSIMPLEROOT/seg_label # segmentation labels
+$SIMSIMPLEROOT/train_set.json # train labels
+$SIMSIMPLEROOT/test_set.json # test labels
+$SIMSIMPLEROOT/val_set.json # validation labels
 ```
 
+The SimSimple dataset will come with the segmentation labels. If you decide to add new clips, segementation labels need to be generated before training can be started:
+
+```Shell
+python tools/generate_seg_tusimple.py --root $SIMSIMPLEROOT
+# this will generate seg_label directory
+```
 
 #### Tusimple
 Download [Tusimple](https://github.com/TuSimple/tusimple-benchmark/issues/3). Then extract them to `$TUSIMPLEROOT`. Create link to `data` directory.
@@ -105,24 +111,6 @@ python tools/generate_seg_tusimple.py --root $TUSIMPLEROOT
 # this will generate seg_label directory
 ```
 
-#### LLAMAS
-Dowload [LLAMAS](https://unsupervised-llamas.com/llamas/). Then extract them to `$LLAMASROOT`. Create link to `data` directory.
-
-```Shell
-cd $CLRNET_ROOT
-mkdir -p data
-ln -s $LLAMASROOT data/llamas
-```
-
-Unzip both files (`color_images.zip` and `labels.zip`) into the same directory (e.g., `data/llamas/`), which will be the dataset's root. For LLAMAS, you should have structure like this:
-```
-$LLAMASROOT/color_images/train # data folders
-$LLAMASROOT/color_images/test # data folders
-$LLAMASROOT/color_images/valid # data folders
-$LLAMASROOT/labels/train # labels folders
-$LLAMASROOT/labels/valid # labels folders
-```
-
 
 ## Getting Started
 
@@ -134,7 +122,18 @@ python main.py [configs/path_to_your_config] --gpus [gpu_num]
 
 For example, run
 ```Shell
-python main.py configs/clrnet/clr_resnet18_culane.py --gpus 0
+python main.py configs/clrnet/clr_resnet18_simsimple.py --gpus 0
+```
+
+Currently the live training progress can only be checked in the terminal. Since all the logs are saved a tool is provided to display these logs as a series of graphs. 
+To see the training graphs, run 
+```Shell
+python tools/plot_training.py [path_to_training_output.txt]
+```
+
+For example, run
+```Shell
+python tools/plot_training.py trained_models/resnet_34/log.txt
 ```
 
 ### Validation
@@ -145,26 +144,36 @@ python main.py [configs/path_to_your_config] --[test|validate] --load_from [path
 
 For example, run
 ```Shell
-python main.py configs/clrnet/clr_dla34_culane.py --validate --load_from culane_dla34.pth --gpus 0
+python main.py configs/clrnet/clr_resnet18_simsimple.py --test --load_from trained_models/resnet_34/ckpt/resnet_34_simsimple.pth --gpus 0
 ```
 
-Currently, this code can output the visualization result when testing, just add `--view`.
-We will get the visualization result in `work_dirs/xxx/xxx/visualization`.
+### Visualisation
+To visualise the models performance a visualisation tool is offered, which displays the prediction on a single image, or a series of images if a directory is provided.
+
+For visualisation, run
+```Shell
+python visualise.py [configs/path_to_your_config] --img [path_to_single_image or path_to_folder_of_images]  --load_from [path_to_your_model] --show
+```
+
+For example, run
+```Shell
+python visualise.py configs/clrnet/clr_resnet18_simsimple.py --img img.png  --load_from trained_models/resnet_34/ckpt/resnet_34_simsimple.pth --show
+```
+
 
 
 ## Results
 ![F1 vs. Latency for SOTA methods on the lane detection](.github/latency_f1score.png)
 
 [assets]: https://github.com/turoad/CLRNet/releases
+[models]: https://github.com/vdw91/HSE_sim_CLRNet/releases/tag/models
 
-### CULane
-
-|   Backbone  |  mF1 | F1@50  | F1@75 |
-| :---  |  :---:   |   :---:    | :---:|
-| [ResNet-18][assets]     | 55.23  |  79.58   | 62.21 |
-| [ResNet-34][assets]     | 55.14  |  79.73   | 62.11 |
-| [ResNet-101][assets]     | 55.55| 80.13   | 62.96 |
-| [DLA-34][assets]     | 55.64|  80.47   | 62.78 |
+### SimSimple
+|   Backbone   |      F1   | Acc |      FDR     |      FNR   |
+|    :---       |          ---:          |       ---:       |       ---:       |      ---:       |
+| [ResNet-18][models]     |    97.37    |   94.50  |    2.63  |  2.63      | 
+| [ResNet-34][models]       |   98.25              |    96.47          |   1.75          |    1.75      | 
+| [ResNet-101][models]      |   98.25|   96.64  |   1.75   |  1.75  |
 
 
 
@@ -177,6 +186,17 @@ We will get the visualization result in `work_dirs/xxx/xxx/visualization`.
 
 
 
+### CULane
+
+|   Backbone  |  mF1 | F1@50  | F1@75 |
+| :---  |  :---:   |   :---:    | :---:|
+| [ResNet-18][assets]     | 55.23  |  79.58   | 62.21 |
+| [ResNet-34][assets]     | 55.14  |  79.73   | 62.11 |
+| [ResNet-101][assets]     | 55.55| 80.13   | 62.96 |
+| [DLA-34][assets]     | 55.64|  80.47   | 62.78 |
+
+
+
 ### LLAMAS
 |   Backbone    |  <center>  valid <br><center> &nbsp; mF1 &nbsp; &nbsp;  &nbsp;F1@50 &nbsp; F1@75     | <center>  test <br> F1@50 |
 |  :---:  |    :---:    |        :---:|
@@ -184,6 +204,15 @@ We will get the visualization result in `work_dirs/xxx/xxx/visualization`.
 | [DLA-34][assets]     |  <center> 71.57 &nbsp; &nbsp;  97.06  &nbsp; &nbsp; 85.43  |   96.12 |
 
 “F1@50” refers to the official metric, i.e., F1 score when IoU threshold is 0.5 between the gt and prediction. "F1@75" is the F1 score when IoU threshold is 0.75.
+
+
+
+## Labelling
+The repository comes with a set of basic tools which were used to manually label the SimSimple Dataset.
+When one wishes to use these tools to generate new training data, an (absolute) input and output path have to be provided in the "\_\_main\_\_" sections of the files. 
+
+A brief instruction on how to use the tool was it is running can be found within the docstring of the class. 
+
 
 ## Citation
 
