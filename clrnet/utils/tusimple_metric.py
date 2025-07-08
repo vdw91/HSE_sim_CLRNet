@@ -104,7 +104,12 @@ class LaneEval(object):
         tp = 1 - fp
         precision = tp / (tp + fp)
         recall = tp / (tp + fn)
-        f1 = 2 * precision * recall / (precision + recall)
+         
+        # Reocurring divison by 0 error. Simple work around to the detremend of logging accuracy.  
+        try:
+            f1 = 2 * precision * recall / (precision + recall)
+        except:
+            f1=0
 
         return json.dumps([{
             'name': 'Accuracy',
