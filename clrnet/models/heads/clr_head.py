@@ -22,13 +22,13 @@ from ..registry import HEADS
 @HEADS.register_module
 class CLRHead(nn.Module):
     def __init__(self,
-                 num_points=72,
+                 num_points=40,
                  prior_feat_channels=64,
                  fc_hidden_dim=64,
                  num_priors=192,
                  num_fc=2,
                  refine_layers=3,
-                 sample_points=36,
+                 sample_points=20,
                  cfg=None):
         super(CLRHead, self).__init__()
         self.cfg = cfg

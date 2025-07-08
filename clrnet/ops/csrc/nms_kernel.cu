@@ -9,7 +9,7 @@
 // Hard-coded maximum. Increase if needed.
 #define MAX_COL_BLOCKS 1000
 #define STRIDE 4
-#define N_OFFSETS 72 // if you use more than 73 offsets you will have to adjust this value
+#define N_OFFSETS 40
 #define N_STRIPS (N_OFFSETS - 1)
 #define PROP_SIZE (5 + N_OFFSETS)
 #define DATASET_OFFSET 0
