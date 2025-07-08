@@ -12,10 +12,10 @@ import random
 
 SPLIT_FILES = {
     'trainval':
-    ['label_data_0313.json', 'label_data_0601.json', 'label_data_0531.json'],
-    'train': ['label_data_0313.json', 'label_data_0601.json'],
-    'val': ['label_data_0531.json'],
-    'test': ['test_label.json'],
+    ['train_set.json', 'val_set.json'],
+    'train': ['train_set.json'],
+    'val': ['val_set.json'],
+    'test': ['test_set.json'],
 }
 
 
@@ -25,7 +25,7 @@ class TuSimple(BaseDataset):
         super().__init__(data_root, split, processes, cfg)
         self.anno_files = SPLIT_FILES[split]
         self.load_annotations()
-        self.h_samples = list(range(160, 720, 10))
+        self.h_samples = list(range(400, 790 + 1, 10))
 
     def load_annotations(self):
         self.logger.info('Loading TuSimple annotations...')
