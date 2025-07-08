@@ -123,26 +123,26 @@ Despite its challenges, CLRNet remains a strong foundation for lane detection, a
 ### resnet-18
 
 **Training**  
-![training_18](.github\training_resnet18.png)
+![training_18](.github/training_resnet18.png)
 
 **Example prediction**  
-![training_18](.github\resnet_18_147.png)
-![training_18](.github\resnet_18_367.png)
+![training_18](.github/resnet_18_147.png)
+![training_18](.github/resnet_18_367.png)
 
 ### resnet-34
 
 **Training**  
-![training_34](.github\training_resnet34.png)
+![training_34](.github/training_resnet34.png)
 
 **Example predictions**  
-![training_18](.github\resnet_34_147.png)
-![training_18](.github\resnet_34_367.png)
+![training_18](.github/resnet_34_147.png)
+![training_18](.github/resnet_34_367.png)
 
 ### resnet-101
 
 **Training**  
-![training_101](.github\training_resnet101.png)
+![training_101](.github/training_resnet101.png)
 
 **Example predictions**  
-![training_18](.github\resnet_101_147.png)
-![training_18](.github\resnet_101_367.png)
+![training_18](.github/resnet_101_147.png)
+![training_18](.github/resnet_101_367.png)
