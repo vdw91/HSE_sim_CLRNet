@@ -2,13 +2,13 @@ net = dict(type='Detector', )
 
 backbone = dict(
     type='ResNetWrapper',
-    resnet='resnet34',
+    resnet='resnet18',
     pretrained=True,
     replace_stride_with_dilation=[False, False, False],
     out_conv=False,
 )
 
-num_points = 40
+num_points = 40 
 max_lanes = 3
 sample_y = range(790, 400 -1 , -10)
 
@@ -23,7 +23,7 @@ cls_loss_weight = 6.
 xyt_loss_weight = 0.5
 seg_loss_weight = 1.0
 
-work_dirs = "work_dirs/clr/r34_tusimple"
+work_dirs = "work_dirs/clr/r18_simsimple"
 
 neck = dict(type='FPN',
             in_channels=[128, 256, 512],
@@ -33,10 +33,10 @@ neck = dict(type='FPN',
 
 test_parameters = dict(conf_threshold=0.40, nms_thres=50, nms_topk=max_lanes)
 
-epochs = 60 
-batch_size = 16 
+epochs = 60
+batch_size = 16
 
-optimizer = dict(type='AdamW', lr=0.8e-3)  # 3e-4 for batchsize 8
+optimizer = dict(type='AdamW', lr=1.0e-3)  # 3e-4 for batchsize 8
 total_iter = (3616 // batch_size + 1) * epochs
 scheduler = dict(type='CosineAnnealingLR', T_max=total_iter)
 
@@ -96,9 +96,9 @@ val_process = [
     dict(type='ToTensor', keys=['img']),
 ]
 
-dataset_path = '/mnt/c/Users/joeyv/Desktop/Studienprojekt/sim_images/simsimple'
+dataset_path = 'path_to_dataset'
 dataset_type = 'TuSimple'
-test_json_file = '/mnt/c/Users/joeyv/Desktop/Studienprojekt/sim_images/simsimple/test_set.json'
+test_json_file = 'path_to/test_set.json'
 dataset = dict(train=dict(
     type=dataset_type,
     data_root=dataset_path,
@@ -112,7 +112,7 @@ val=dict(
     processes=val_process,
 ),
 test=dict(
-    type=dataset_type,
+    type=dataset_type,  
     data_root=dataset_path,
     split='test',
     processes=val_process,
