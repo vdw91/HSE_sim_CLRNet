@@ -6,7 +6,8 @@
 
 
 
-Pytorch implementation of the paper "[CLRNet: Cross Layer Refinement Network for Lane Detection](https://arxiv.org/abs/2203.10350)" (CVPR2022 Acceptance).
+Pytorch implementation of the paper "[CLRNet: Cross Layer Refinement Network for Lane Detection](https://arxiv.org/abs/2203.10350)" (CVPR2022 Acceptance).  
+Adapted for use within a Hochschule Esslingen study project [project report](Report.md)
 
 ## Introduction
 ![Arch](.github/arch.png)
@@ -39,16 +40,53 @@ conda activate clrnet
 ### Install dependencies
 
 ```Shell
-# Install pytorch firstly, the cudatoolkit version should be same in your system.
+# Use pip to install all packages
+pip install -r requirements.txt
 
-conda install pytorch torchvision cudatoolkit=10.1 -c pytorch
-
-# Or you can install via pip
-pip install torch==2.4 torchvision==0.19
-
-# Install python packages
+# Create build environment and packages
 python setup.py build develop
 ```
+
+## Labelling
+The repository comes with a set of tools which were used to manually label the SimSimple Dataset.
+
+#### Manual labelling
+
+To start the manual labeller, run
+```Shell
+python labelling_tools/manual_labeller.py [path_to_dir_with_images] [path_to_dir_where_labels_will_be_saved]
+```
+
+The manual labeller labels lanes 0 through 2. (Currently no option to go back to a previous lane)  
+To conform to the TuSimple dataset, start by labelling the middle lane (0).
+To do so, start by selecting click within the lane, next click on another point within the lane. The tool will draw a line between the points and store it. To continue drawing the lane simply click again and the line will continue.  
+If the connecting point is incorrect, use backspace, which removes the last drawn line. (but keeps the starting point)  
+If the starting point needs to be changed, press backspace and then delete.  
+To continue labelling the next lane (which is the lane to the right of the vehicle), press the right mouse button.
+Repeat this for the next and final lane.  
+Once the image has been properly labelled, press enter to continue to the next image.
+
+
+#### Quality assurance
+
+To start the quality assurance tool, run
+```Shell
+python labelling_tools/quality_checker.py [path_to_dir_where_manual_labeller_output]
+```
+
+Once the quality assurance tool has been opened a white screen will be displayed. Press enter to view the first image.
+The tool will display the image along with the labels. If the labels are unsatisfactory, press delete. This will delete the image and the label from the output dir (the directory given to the tool when called), which lets the manual labeller label it again.  
+If the labels are correct, press enter, which keeps the image and the labels.
+
+#### Restructure manual labeller output
+
+To start restructuring tool, run
+```Shell
+python labelling_tools/restructure_labels_to_dataset.py [path_where_manual_labeller_saved_the_data] [path where dataset images will be saved] [Path where dataset JSON files will be saved]
+```
+
+The tool restructures the output from the manual labeller, which prioritises human readability, to the format desired by model.
+
 
 ### Data preparation
 ### SimSimple
@@ -194,15 +232,6 @@ python visualise.py configs/clrnet/clr_resnet18_simsimple.py --img img.png  --lo
 | [DLA-34][assets]     |  <center> 71.57 &nbsp; &nbsp;  97.06  &nbsp; &nbsp; 85.43  |   96.12 |
 
 “F1@50” refers to the official metric, i.e., F1 score when IoU threshold is 0.5 between the gt and prediction. "F1@75" is the F1 score when IoU threshold is 0.75.
-
-
-
-## Labelling
-The repository comes with a set of basic tools which were used to manually label the SimSimple Dataset.
-When one wishes to use these tools to generate new training data, an (absolute) input and output path have to be provided in the "\_\_main\_\_" sections of the files. 
-
-A brief instruction on how to use the tool was it is running can be found within the docstring of the class. 
-
 
 ## Citation
 
