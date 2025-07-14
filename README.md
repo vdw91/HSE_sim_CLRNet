@@ -16,17 +16,17 @@ Pytorch implementation of the paper "[CLRNet: Cross Layer Refinement Network for
 ## Installation
 
 ### Prerequisites
-Only test on Ubuntu18.04 and 20.04 with:
-- Python >= 3.8 (tested with Python3.8)
-- PyTorch >= 1.6 (tested with Pytorch1.6)
-- CUDA (tested with cuda10.2)
+Tested on Ubuntu 22.04.2 with:
+- Python >= 3.8 (tested with Python3.8.20)
+- PyTorch >= 1.8 (tested with Pytorch1.8)
+- CUDA (tested with cuda12.1)
 - Other dependencies described in `requirements.txt`
 
 ### Clone this repository
 Clone this code to your workspace. 
 We call this directory as `$CLRNET_ROOT`
 ```Shell
-git clone https://github.com/Turoad/clrnet
+git clone https://github.com/vdw91/HSE_sim_CLRNet.git
 ```
 
 ### Create a conda virtual environment and activate it (conda is optional)
@@ -44,7 +44,7 @@ conda activate clrnet
 conda install pytorch torchvision cudatoolkit=10.1 -c pytorch
 
 # Or you can install via pip
-pip install torch==1.8.0 torchvision==0.9.0
+pip install torch==2.4 torchvision==0.19
 
 # Install python packages
 python setup.py build develop
