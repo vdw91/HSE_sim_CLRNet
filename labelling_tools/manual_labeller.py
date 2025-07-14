@@ -9,16 +9,17 @@ import os
 import glob
 import shutil
 import json
+import argparse
 
     
 class LabelTool(tk.Frame):
     """
-    Tool to manuzally label images according to the TuSimple dataset format.
+    Tool to manually label images according to the TuSimple dataset format.
     The GUI displays the image along with the h_samples which will be used to store the lane positions.
     
     To draw a lane, left click on the image to set the start point of the line, then click again to set the end point.
     While drawing a lane, keep clicking to add another point, continuing the line from the previous point.
-    In case of a mistake, backspace will undo the last drwan line (and only the last line).   
+    In case of a mistake, backspace will undo the last drawn line (and only the last line).
     When a wrong starting point has been selected, the delete key will reset the postion. 
     
     Start with lane 0, which is the middle lane.
@@ -239,9 +240,15 @@ class LabelTool(tk.Frame):
 
 if __name__ == "__main__":
     
-    img_dir_path = r"imgs" # Path to a folder with images to be labelled
-    output_dir_path = r"labelled_data" # Path to a folder where the labelled data will be saved
+    parser = argparse.ArgumentParser()
     
+    parser.add_argument('image_folder', help='The path to the folder with images to be labelled')
+    parser.add_argument('output_folder',  help='The path to the folder where the labelled data will be saved')
+
+    args = parser.parse_args()
+
     root = tk.Tk()
-    app = LabelTool(root, img_dir_path=img_dir_path, output_dir_path=output_dir_path)
+    app = LabelTool(root, img_dir_path=args.image_folder, output_dir_path=args.output_folder)
+
     root.mainloop()
+    

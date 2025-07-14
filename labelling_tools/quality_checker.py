@@ -8,6 +8,7 @@ import json
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, 
 NavigationToolbar2Tk)
+import argparse
 
 
 class LabelTool(tk.Frame):
@@ -102,8 +103,12 @@ class LabelTool(tk.Frame):
 
 if __name__ == "__main__":
     
-    output_dir_path = r"TuSimple_data_creation\test" # Path where manual labeller saved the data
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument('output_path', help='Path where manual labeller saved the data')
+
+    args = parser.parse_args()
     
     root = tk.Tk()
-    app = LabelTool(root, output_dir_path=output_dir_path)
+    app = LabelTool(root, output_dir_path=args.output_path)
     root.mainloop()
