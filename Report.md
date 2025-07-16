@@ -18,12 +18,26 @@ Lane detection is a critical component in the development of Advanced Driver Ass
 
 In this project, a deep learning approach was used to automatically learn lane features from a dataset of labelled images. Compared to more traditional computer vision techniques, which often rely on edge detection and hand-crafted filters, neural networks should be able to offer a more robust and adaptable system. However, as will be discussed during the result section, does the chosen network struggle with a highly varied environment.
 
-During this report the words "the simulation" will occur multiple times. This refers to a Gazebo simulation environment in which a virtual car can drive around a circuit. This simulation is part of the Autonomous Systems Design course. Below is an example taken from the input images, which will are used to create the annotated dataset.
+During this report the words "the simulation" will occur multiple times. This refers to a Gazebo simulation environment in which a virtual car can drive around a circuit. This simulation is part of the Autonomous Systems Design course. Below is an example taken from the input images, which will are used to create the annotated dataset. 
+
+
 
 ![Simultation_example](.github/simulation_example.png)  
 *Example image taken from the simulation*
 
 ## Data
+
+### TuSimple
+
+The TuSimple lane detection benchmark is one of the most used datasets in the field of autonomous driving. It provides a standardized dataset for the evaluation of the perfomance of lane detetion algorithms under real-world driving conditions. Released by the autonomous trucking compnay TuSimple, the dataset has been a key perfomance indicator of many lane detection models. 
+
+The dataset contains over 6,400 clips, each made up of 20 frames (with a resolution of 1280 x 720 pixels). From the 20 frames, the final one is annotated with lane markings, while the other frames are mainly used as context. The labels include precise coordinates of up to four lanes. The lanes are represented using a series of x and y pixels, at fix y-positions (also referred to as horizontal samples, or hsamples.)
+
+The dataset focuses on highway scenarios, with relatively consistent lighting and lane visibility. It mainly contains straight, or very slightly curved lanes, recorded during the daytime with clear weather conditions. This means it offers a real-world yet controlled dataset.
+
+Howevver the dataset has a few limitations. The dataset lacks diverse driving scenarios, such as urban areas, bad weather and complicated curves or intersections. 
+
+For this project the TuSimple benchmark served as a reference framework for a custom dataset. Key elements taken for the benchmark are the annotation format and data  structure. This ensures compatibility with common lane detection models. The advantage of creating a custom dataset is a model that is specialised in the HSE simulation environment, plus being able to add more difficulit scenarios to the dataset. 
 
 ### Automatic approach
 
@@ -70,13 +84,42 @@ The primary motivation for choosing CLRNet was its high performance on the [TuSi
 
 Another significant advantage of CLRNet was the availability of well-documented and reproducible code via its official [GitHub repository](https://github.com/Turoad/CLRNet?tab=readme-ov-file). This offered a smooth setup, training, and evaluation process without requiring extensive model engineering from scratch. The repository includes training scripts and configuration files, which streamlined the use of the model.
 
-CLRNet (Cross Layer Refinement Network) is specifically designed to enhance lane detection by leveraging both high-level semantic features and low-level spatial details. The model first performs an initial lane prediction using high-level contextual information, and then refines the detection using low-level features to improve localization accuracy.
-
-A key component of the architecture is the ROIGather module, which further enhances the lane feature representation. Additionally, CLRNet introduces a Line IoU loss function, which treats the entire lane as a continuous line rather than a series of points or segments, further improving detection precision.
-
-This combination of architectural innovations enables CLRNet to  outperform previous state-of-the-art models on benchmarks like TuSimple, making it a strong candidate for real-world lane detection tasks as well as for the simulation.
-
 *Model description taken from the [CLRNet paper](https://arxiv.org/abs/2203.10350)*
+
+### CLRNet
+
+Convolutional Neural Networks (CNNs) have made significant advances in lane detection by learning powerful feature representations. Many recent methods have achieved promising results using CNN-based architectures. However challenges remain. ONe of the fundemental issues is with the multi-scale nature of lane featurues. Lane markings are thin and long objects with a relatively simple appearance, yet distinguishing them from visually similar object requires high-level semantic underatnding and global context. 
+
+Low-level CNN features are rich in spatial detail but lack semantic understanding. Conversely, high-level features capture global context but tend to lose fine-grained localization accuracy. This gap creates a trade-off in many lane detection systems: reliance on low-level features can cause confusion between lanes and similar patterns (e.g., mistakenly identifying road landmarks as lane lines), while relying solely on high-level features may lead to imprecise localization of lanes.
+
+Other approaches either model local geometry and merge it into global predictions, or apply fully connected layers using global context. While these methods emphasize either local or global features, they often fail to integrate both effectively, leading to suboptimal detection performance.
+
+To address these challenges, Cross Layer Refinement Network (CLRNet) has been introduced, a novel framework that fully exploits both low-level and high-level features for enhanced lane detection. The network operates in two stages: it first performs coarse lane localization using high-level semantic features, followed by a refinement stage leveraging fine-detail low-level features to achieve precise positioning. This progressive refinement approach significantly improves detection accuracy.
+
+To further enhance robustness in scenarios with weak visual evidence, ROIGather has been added, a module that captures global contextual information by linking lane-region features with the entire feature map. This enables the network to reason about lane structures in a broader context.
+
+Moreover, Line IoU (LIoU) loss was introduced, a new loss function specifically designed for lane detection. Unlike standard loss functions such as smooth-L1, LIoU directly optimizes the alignment of predicted and ground-truth lane lines as whole units, significantly boosting performance.
+
+#### ROIGather
+
+In challenging scenarios, for example when lane markings are partially covered or distorted by lighting, local visual cues may be insufficient for accurate lane detection. To address this, the model's contextual understanding of lane features has been enhanced by aggregating long-range dependencies.It incorporates convolutions along lane priors, enabling each lane pixel to gather information from its surroundings and compensate for missing or degraded visual evidence.
+
+For this purpose ROIGather, a lightweight and efficient module designed to strengthen lane feature representations. It extracts features from lane priors using ROIAlign, uniformly sampling key points along each lane and applying bilinear interpolation. To enrich these features, we perform convolutions along the lane priors and apply a fully connected layer for dimensionality reduction.
+
+To further incorporate global context, ROIGather computes an attention-based relation between the ROI lane features and the entire feature map. This attention mechanism selectively aggregates global features, enhancing the lane prior features with complementary information from the broader scene.
+
+By integrating both local and global context, ROIGather significantly improves the robustness and accuracy of lane detection, particularly under challenging visual conditions.
+
+#### Line IoU loss
+
+Traditional lane detection methods often rely on point-wise distance-based loss functions such as smooth-L1, which treat each point on the lane independently. However, this oversimplified approach overlooks the structural continuity of lane lines, leading to suboptimal regression accuracy.
+
+To better capture the holistic nature of lane structures, a Line IoU (LIoU) loss was introduced that treats the entire lane as a unified geometric entity rather than a collection of discrete points. Inspired by the standard Intersection over Union (IoU) metric used in object detection, LIoU computes the overlap between predicted and ground truth lane segments.
+
+This approach exhibits two main advantages:
+
+1. It is simple and differentiable, which is very easy to implement parallel computations.
+2. It predicts the lane as a whole unit, which helps improve the overall performance.
 
 ## Training
 
