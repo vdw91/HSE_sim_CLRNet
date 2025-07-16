@@ -160,6 +160,13 @@ python tools/generate_seg_tusimple.py --root $TUSIMPLEROOT
 
 ## Getting Started
 
+Note: before starting this, make sure to activate the conda environment and set the env variables
+```Shell
+conda activate clrnet
+export CLRNET_ROOT=[path to your repo]
+export SIMSIMPLEROOT=$CLRNET_ROOT/data/simsimple
+```
+
 ### Training
 For training, run
 ```Shell
@@ -198,7 +205,7 @@ python main.py [configs/path_to_your_config] --[test|validate] --load_from [path
 
 For example, run
 ```Shell
-python main.py configs/clrnet/clr_resnet18_simsimple.py --test --load_from trained_models/resnet_34/ckpt/resnet_34_simsimple.pth --gpus 0
+python main.py configs/clrnet/clr_resnet34_simsimple.py --test --load_from trained_models/resnet_34/ckpt/resnet_34_simsimple.pth --gpus 0
 ```
 
 ### Visualisation
@@ -206,12 +213,12 @@ To visualise the models performance a visualisation tool is offered, which displ
 
 For visualisation, run
 ```Shell
-python visualise.py [configs/path_to_your_config] --img [path_to_single_image or path_to_folder_of_images]  --load_from [path_to_your_model] --show
+python tools/visualise.py [configs/path_to_your_config] --img [path_to_single_image or path_to_folder_of_images]  --load_from [path_to_your_model] --show
 ```
 
 For example, run
 ```Shell
-python visualise.py configs/clrnet/clr_resnet18_simsimple.py --img img.png  --load_from trained_models/resnet_34/ckpt/resnet_34_simsimple.pth --show
+python tools/visualise.py configs/clrnet/clr_resnet34_simsimple.py --img img.png  --load_from trained_models/resnet_34/ckpt/resnet_34_simsimple.pth --show
 ```
 
 
