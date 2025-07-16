@@ -4,6 +4,7 @@ import cv2
 import os
 import argparse
 
+# tusimple dataset configuration
 TRAIN_SET = ['label_data_0313.json', 'label_data_0601.json']
 VAL_SET = ['label_data_0531.json']
 TRAIN_VAL_SET = TRAIN_SET + VAL_SET
@@ -12,6 +13,8 @@ TEST_SET = ['test_label.json']
 
 def gen_label_for_json(args, image_set):
     H, W = 720, 1280
+    if args.simsimple:
+        H, W = 800, 800
     SEG_WIDTH = 30
     save_dir = args.savedir
 
@@ -121,6 +124,16 @@ if __name__ == '__main__':
                         type=str,
                         default='seg_label',
                         help='The root of the Tusimple dataset')
+    parser.add_argument('--simsimple',
+                        action='store_true',
+                        help='Use SimSimple dataset configuration')
     args = parser.parse_args()
 
+    if args.simsimple:
+        TRAIN_SET = ['train_set.json']
+        VAL_SET = ['val_set.json']
+        TRAIN_VAL_SET = TRAIN_SET + VAL_SET
+        TEST_SET = ['test_set.json']
+        print("Using SimSimple dataset configuration.")
+    
     generate_label(args)

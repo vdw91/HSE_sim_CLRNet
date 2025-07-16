@@ -47,8 +47,23 @@ pip install -r requirements.txt
 python setup.py build develop
 ```
 
+Note: This gives an error message, but should be ok: 
+```
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+pypcd 0.1.3 requires python-lzf, which is not installed.
+requests-oauthlib 2.0.0 requires oauthlib>=3.0.0, which is not installed.
+tensorflow 2.13.1 requires typing-extensions<4.6.0,>=3.6.6, but you have typing-extensions 4.13.2 which is incompatible.
+```
+
 ## Labelling
 The repository comes with a set of tools which were used to manually label the SimSimple Dataset.
+
+To unpack the data set, run 
+```bash
+cd datasets/
+sudo apt install p7zip-full
+7za x simsimple.7z 
+```
 
 #### Manual labelling
 
@@ -56,6 +71,7 @@ To start the manual labeller, run
 ```Shell
 python labelling_tools/manual_labeller.py [path_to_dir_with_images] [path_to_dir_where_labels_will_be_saved]
 ```
+The labelling tool should work with png images of size 800x800.
 
 The manual labeller labels lanes 0 through 2. (Currently no option to go back to a previous lane)  
 To conform to the TuSimple dataset, start by labelling the middle lane (0).
@@ -93,9 +109,11 @@ The tool restructures the output from the manual labeller, which prioritises hum
 The [SimSimple](https://github.com/vdw91/HSE_sim_CLRNet/blob/main/datasets/simsimple.7z) dataset is contained as a 7z file within the repository. Then extract them to `$SIMSIMPLEROOT`. Create link to `data` directory.
 
 ```Shell
+export CLRNET_ROOT=[your data directory]
 cd $CLRNET_ROOT
 mkdir -p data
-ln -s $SIMSIMPLEROOT data/simsimple
+export SIMSIMPLEROOT=$CLRNET_ROOT/data/simsimple
+.. unzip simsimple.7z in $SIMSIMPLEROOT ..
 ```
 
 For SimSimple, you should have structure like this:
@@ -110,7 +128,7 @@ $SIMSIMPLEROOT/val_set.json # validation labels
 The SimSimple dataset will come with the segmentation labels. If you decide to add new clips, segementation labels need to be generated before training can be started:
 
 ```Shell
-python tools/generate_seg_tusimple.py --root $SIMSIMPLEROOT
+python tools/generate_seg_tusimple.py --root $SIMSIMPLEROOT --simsimple
 # this will generate seg_label directory
 ```
 
@@ -142,6 +160,13 @@ python tools/generate_seg_tusimple.py --root $TUSIMPLEROOT
 
 ## Getting Started
 
+Note: before starting this, make sure to activate the conda environment and set the env variables
+```Shell
+conda activate clrnet
+export CLRNET_ROOT=[path to your repo]
+export SIMSIMPLEROOT=$CLRNET_ROOT/data/simsimple
+```
+
 ### Training
 For training, run
 ```Shell
@@ -164,6 +189,14 @@ For example, run
 python tools/plot_training.py trained_models/resnet_34/log.txt
 ```
 
+To load our training result, you can download the released model from github:
+```bash
+mkdir clrnet_model # somewhere you like
+cd clrnet_model/
+wget https://github.com/vdw91/HSE_sim_CLRNet/releases/download/models/trained_models.zip
+unzip trained_models.zip 
+```
+
 ### Validation
 For testing, run
 ```Shell
@@ -172,7 +205,7 @@ python main.py [configs/path_to_your_config] --[test|validate] --load_from [path
 
 For example, run
 ```Shell
-python main.py configs/clrnet/clr_resnet18_simsimple.py --test --load_from trained_models/resnet_34/ckpt/resnet_34_simsimple.pth --gpus 0
+python main.py configs/clrnet/clr_resnet34_simsimple.py --test --load_from trained_models/resnet_34/ckpt/resnet_34_simsimple.pth --gpus 0
 ```
 
 ### Visualisation
@@ -180,12 +213,12 @@ To visualise the models performance a visualisation tool is offered, which displ
 
 For visualisation, run
 ```Shell
-python visualise.py [configs/path_to_your_config] --img [path_to_single_image or path_to_folder_of_images]  --load_from [path_to_your_model] --show
+python tools/visualise.py [configs/path_to_your_config] --img [path_to_single_image or path_to_folder_of_images]  --load_from [path_to_your_model] --show
 ```
 
 For example, run
 ```Shell
-python visualise.py configs/clrnet/clr_resnet18_simsimple.py --img img.png  --load_from trained_models/resnet_34/ckpt/resnet_34_simsimple.pth --show
+python tools/visualise.py configs/clrnet/clr_resnet34_simsimple.py --img img.png  --load_from trained_models/resnet_34/ckpt/resnet_34_simsimple.pth --show
 ```
 
 

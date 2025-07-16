@@ -96,9 +96,10 @@ val_process = [
     dict(type='ToTensor', keys=['img']),
 ]
 
-dataset_path = 'path_to_dataset'
+import os
+dataset_path = os.environ['SIMSIMPLEROOT']
 dataset_type = 'TuSimple'
-test_json_file = 'path_to/test_set.json'
+test_json_file = dataset_path+'/test_set.json'
 dataset = dict(train=dict(
     type=dataset_type,
     data_root=dataset_path,
